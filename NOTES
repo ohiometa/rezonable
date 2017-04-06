@@ -1,0 +1,57 @@
+Some load measurements
+30 Mar 2016
+
+Firefox is configured to not query AAAA.
+
+JUST READING HOSTS
+tipe universe: [1, 2, 5, 6, 65282]
+76 recs for 28 names
+
+HOSTS + FIREFOX
+tipe universe: [1, 2, 5, 6, 65282]
+174 recs for 124 names
+
+HOSTS + FIREFOX + GOOGLE SEARCH
+tipe universe: [1, 2, 5, 6, 65282]
+191 recs for 141 names
+
+HOSTS + FIREFOX + STACKOVERFLOW ANSWER
+tipe universe: [1, 2, 5, 6, 65282]
+377 recs for 327 names
+
+HOSTS + FIREFOX + CNN
+tipe universe: [1, 2, 5, 6, 65282]
+882 recs for 827 names
+
+HOSTS + FIREFOX + FOXNEWS
+tipe universe: [1, 2, 5, 6, 65282]
+668 recs for 606 names
+
+HOSTS + FIREFOX + CSMONITOR
+tipe universe: [1, 2, 5, 6, 65282]
+532 recs for 477 names
+
+HOSTS + FIREFOX + YOUTUBE REPLAY
+tipe universe: [1, 2, 5, 6, 65282]
+219 recs for 169 names
+
+HOSTS + FIREFOX + NFL
+tipe universe: [1, 2, 5, 6, 65282]
+636 recs for 585 names
+
+HOSTS + FIREFOX + YOUPORN
+tipe universe: [1, 2, 5, 6, 65282]
+238 recs for 186 names
+
+UNION OF ALL THE ABOVE (NO OVERLAPS) WOULD BE
+tipe universe: [1, 2, 5, 6, 65282]
+2525 recs for 2450 names
+
+UNION OF ALL THE ABOVE ACTUALLY IS
+tipe universe: [1, 2, 5, 6, 65282]
+1543 recs for 1466 names
+
+
+
+a1e7.akamaiedge.net.
+
