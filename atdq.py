@@ -16,7 +16,7 @@
 from __future__ import division, print_function
 from random import randrange
 from sys import stdout
-from time import strftime
+from time import sleep, strftime
 
 from cache import *
 import config as w
@@ -26,7 +26,7 @@ from tiny import *
 __all__ = 'atdq ctda tick'.split()
 
 # new enums: CNAME, failure, no such domain, result, need more time
-isCNAME, isCursed, isFail, isNSD, isRecs, isWait = range(6)
+isCNAME, isRecursed, isFail, isNSD, isRecs, isWait = range(6)
 
 # special rcode enum
 rcodeTimeout = -1
@@ -38,14 +38,15 @@ kounter = [0]				# number of attends
 # Module entry point #1*:
 # Accepts an LQ and someday returns an answer.
 # If topLevel is false, just set up the fields.
-def atdq(q, topLevel = True):
+def atdq(q, parentQuery = None):
 	q.gen = newResolver(q)	# does not execute, but returns a generator
 	q.rcode = 0
 	q.lastzone = ''
 	q.origName = q.name
 	q.cnames = [q.name]
 	q.As, q.Auths, q.Addls = [], [], []
-	if topLevel:
+	q.parent = parentQuery
+	if not parentQuery:
 		attend(q)
 
 # Module entry point #2**:
@@ -71,9 +72,9 @@ def ctda(a):
 	for name, tipe, ttl, rdata in a.As + a.Auths + a.Addls:
 		if (name, tipe) not in coll:
 			coll[(name, tipe)] = [w.maxTTL, []]
-			c = coll[(name, tipe)]
-			c[0] = min(c[0], ttl)
-			c[1].append(rdata)
+		c = coll[(name, tipe)]
+		c[0] = min(c[0], ttl)
+		c[1].append(rdata)
 
 	# Replace all the cache knows about (name, tipe) with what's here.
 	for (name, tipe), (ttl, recs) in coll.iteritems():
@@ -119,7 +120,7 @@ def attend(q):
 		flavor, ttl, food = q.gen.next()
 
 		# deal with recursive side-query for address of nameserver
-		if flavor == isCursed:
+		if flavor == isRecursed:
 			food.parentQuery = q
 			q = food
 			continue
@@ -160,7 +161,7 @@ def attend(q):
 			return
 
 		else: raise Bug
-		break							# only isCNAME and isCursed loop
+		break							# only isCNAME and isRecursed loop
 
 	# Tail end recurse ): if this query has a parent.
 	try:
@@ -236,11 +237,19 @@ def newResolver(q):
 			if addrs is None:
 
 				# A recursive query instance 'qq' is needed to get the
-				# nameserver's A records.
+				# nameserver's A records. But first make sure we won't loop.
+				who = q
+				while who:
+					if who.name == ns and who.tipe == 1:
+						break						# double-continue
+					who = who.parent
+				if who: continue
+
+				# This will be an "original" query, so it's okay to begin.
 				qq = AdHoc()
 				qq.name, qq.tipe, qq.replyTo = ns, 1, None
-				atdq(qq, False)
-				yield isCursed, None, qq
+				atdq(qq, q)
+				yield isRecursed, None, qq
 
 				# The recursive query is finished. Magic!
 				addrs = getCache(ns, 1)
@@ -310,25 +319,17 @@ def nearestNameservers(name):
 
 # Show what kind of load we're under.
 def demand():
-	gc.collect()
-	print(' in %s rq%i at%i kb%i ca%i gc%s ga%i' % \
-		(strftime('%H%M%S'), len(waiter), kounter[0], \
-		kilos(), cacheSize(), gc.get_count(), len(gc.garbage)), file=demand.f)
-	demand.f.flush()
+	if g.now < demand.next:
+		return
+	demand.next = g.now + 5
 	if gc.garbage: print('WE HAVE GARBAGE')
 	names = {}
-	lists = {}
 	try:
 		for item in gc.get_objects():
 			n = type(item).__name__
 			if n not in names:
 				names[n] = 0
 			names[n] += 1
-#			if type(item) is list:
-#				kind = set(map(lambda x: type(x).__name__, item))
-#				if kind not in lists:
-#					lists[kind] = frozenset()
-#				lists[kind].add(frozenset(kind))
 	except: pass
 	nl = list(names)
 	nl.sort()
@@ -337,14 +338,9 @@ def demand():
 	for n in nl:
 		print('%6i %s\x1b[K' % (names[n], n))
 	print('\x1b[K')
-	print('LISTS:\x1b[K')
-	for kind in lists:
-		print('%6i %s\x1b[K' % (lists[kind], kind))
-	print('\x1b[K')
 	stdout.flush()
 
-demand.f = open('/dev/shm/rezlog', 'a')
-gc.set_threshold(100, 10, 10)
+demand.next = 0
 
 # *answer the damn question
 # **check the damn answer

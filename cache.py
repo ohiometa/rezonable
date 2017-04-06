@@ -30,6 +30,7 @@ def saveCache():
 
 # Load cache from previous run. All or nothing.
 def loadCache():
+	global cache
 	try:
 		f = gopen(w.persistFile, 'r', 9)		# XXX can tweak level here
 		hold = load(f)

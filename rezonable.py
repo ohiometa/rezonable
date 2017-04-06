@@ -26,9 +26,7 @@ KNOWN BUGS
 - dig a6-67.akam.net. ns [should have lots of recs; we return server failure]
 - dig a0dsce4.akamaiedge.net. [should have no A recs; we return server failure]
 - dig a1e7.akamaiedge.net. [should have no A recs; we return server failure]
-- sometimes the platform seems to hang, and we don't know why
-- windows.com website?
-- memory looks like it goes nuts, but without any witnesses
+- windows.com does NOT work
 - requeries do not occur
 - anecdotal evidence that NS records for '.' got removed, but
   we were doing gc stress test in an interactive session at tha ttime.
