@@ -121,7 +121,7 @@ def attend(q):
 
 		# deal with recursive side-query for address of nameserver
 		if flavor == isRecursed:
-			food.parentQuery = q
+			# food.parentQuery = q		# gone: now done in another way
 			q = food
 			continue
 
@@ -164,11 +164,9 @@ def attend(q):
 		break							# only isCNAME and isRecursed loop
 
 	# Tail end recurse ): if this query has a parent.
-	try:
-		attend(q.parentQuery)
+	if q.parent:
+		attend(q.parent)
 		return
-	except AttributeError:
-		pass
 
 	# We are now able to respond to the user.
 	a = AdHoc()
@@ -203,6 +201,7 @@ def newResolver(q):
 		# XXX TTL should realistically come from an SOA.
 		if getCache(name, 65282) is not None:
 			yield isNSD, w.nsdTTL, None
+			print('slam 1')
 			return					# local query ends
 
 		# CNAME? Hand it back.
@@ -215,6 +214,7 @@ def newResolver(q):
 		recs, ttl = getCacheTTL(name, tipe)
 		if recs is not None:
 			yield isRecs, ttl, recs
+			print('slam 2')
 			return					# local query ends
 
 		# What we seek is not in the cache.
@@ -228,6 +228,7 @@ def newResolver(q):
 			# It's not our problem to fix.
 			q.rcode = 2
 			yield isFail, None, None
+			print('slam 3')
 			return					# local query ends
 		q.lastzone = zone
 
@@ -279,6 +280,7 @@ def newResolver(q):
 		# Not a single nameserver responded successfully.
 		print('out of options at zone', zone, 'for', name, tipe)
 		yield isFail, None, None
+		print('slam 4')
 		return						# local query ends
 
 # Send query to addr about (name, tipe)

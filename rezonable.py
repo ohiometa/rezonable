@@ -23,6 +23,19 @@ Useful numbers:
 
 KNOWN BUGS
 ----------
+- the following:
+
+	last successful query: telecomitalia.it (this causes the crash)
+
+	Traceback (most recent call last):one state.tx.us. origName state.tx.us. for state.tx.us. 1.ru. 1yanews.  File "./rezonable.py", line 181, in <module>
+		run()s dmtu.mt.ns.els-gms.att.net. rcode 2 zone successfactors.com. origName successfactors.com. for  File "./rezonable.py", line 150, in run
+		ctda(p)
+	  File "/home/me/dist-code/rezonable/atdq.py", line 91, in ctda
+		attend(r.q)
+	  File "/home/me/dist-code/rezonable/atdq.py", line 120, in attend
+		flavor, ttl, food = q.gen.next()
+	StopIteration
+
 - dig a6-67.akam.net. ns [should have lots of recs; we return server failure]
 - dig a0dsce4.akamaiedge.net. [should have no A recs; we return server failure]
 - dig a1e7.akamaiedge.net. [should have no A recs; we return server failure]
@@ -39,6 +52,7 @@ GOING TO DO (minutes to implement estimated)
     for one thing, you can get Firefox to quit asking for AAAAs.
  30 packet length negotiation
  30 reduce susceptability to glue poisoning
+ 60 query resource limits (duration, size, etc.)
  60 improved tracing, logging, and some alerts
  90 compression fully working
  10 pass case back to customer (do AFTER compression)
