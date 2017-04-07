@@ -24,6 +24,8 @@ Useful numbers:
 KNOWN BUGS
 ----------
 
+    tvsubtitles.net. 1
+
 
 GOING TO DO (minutes to implement estimated)
 --------------------------------------------
