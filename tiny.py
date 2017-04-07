@@ -2,7 +2,6 @@
 # tiny things we need around
 
 from __future__ import division, print_function
-import gc				# note visible to others
 from resource import getrusage, RUSAGE_SELF
 from sys import stdout
 

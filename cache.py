@@ -103,7 +103,6 @@ def purgeCache():
 			if tipe == 1 and name in g.immortal:
 				g.requery.append(name)
 	for name_tipe in bye:
-		print('bye:', name_tipe)
 		del cache[name_tipe]
 	if g.requery:
 		g.kickMe = True			# TODO nothing happens with this
@@ -126,7 +125,7 @@ def cacheDump():
 	tipes.sort()
 	names = list(names)
 	names.sort(key = domainSortKey)
-	print('NAMES:')
+	print('NAMES IN CACHE:')
 	for n in names:
 		print(n)
 	print()
@@ -137,4 +136,4 @@ def cacheDump():
 def domainSortKey(name):
 	name = name.split('.')
 	name.reverse()
-	return name
+	return namec

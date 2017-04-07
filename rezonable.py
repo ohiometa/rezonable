@@ -23,18 +23,6 @@ Useful numbers:
 
 KNOWN BUGS
 ----------
-- the following:
-
-	last successful query: telecomitalia.it (this causes the crash)
-
-	Traceback (most recent call last):one state.tx.us. origName state.tx.us. for state.tx.us. 1.ru. 1yanews.  File "./rezonable.py", line 181, in <module>
-		run()s dmtu.mt.ns.els-gms.att.net. rcode 2 zone successfactors.com. origName successfactors.com. for  File "./rezonable.py", line 150, in run
-		ctda(p)
-	  File "/home/me/dist-code/rezonable/atdq.py", line 91, in ctda
-		attend(r.q)
-	  File "/home/me/dist-code/rezonable/atdq.py", line 120, in attend
-		flavor, ttl, food = q.gen.next()
-	StopIteration
 
 - dig a6-67.akam.net. ns [should have lots of recs; we return server failure]
 - dig a0dsce4.akamaiedge.net. [should have no A recs; we return server failure]
@@ -103,10 +91,12 @@ from os.path import dirname, join
 from select import select
 from signal import signal, SIGTERM
 from socket import fromfd, socket, timeout, AF_INET, SOCK_DGRAM
-from sys import argv
+from sys import argv, stdout
+from thread import start_new_thread
 from time import time
 
 from atdq import atdq, ctda, tick
+from dc import consoleDo, consoleThread
 from cache import cacheDump, createBootstrapZone, loadCache, purgeCache, saveCache
 import config as w
 from hosts import *
@@ -144,6 +134,8 @@ def run():
 		if fork():
 			raise SystemExit
 
+	start_new_thread(consoleThread, ())
+
 	createBootstrapZone()
 	if 'fresh' not in argv:				# arg 'fresh' prevents cache load
 		loadCache()
@@ -157,7 +149,6 @@ def run():
 			try:
 				p = parse(data, replyTo)
 			except Malformed:
-				trace('malformed')
 				continue
 
 			if p.qr:						# process response
@@ -188,7 +179,10 @@ def run():
 		if pollCount <= 0:
 			purgeCache()
 			loadHosts()
-			pollCount = 60			# times settimeout interval XXX longer
+			pollCount = 60				# times select timeout XXX make longer
+
+		# Console service.
+		consoleDo()
 		continue
 
 try:
@@ -196,5 +190,5 @@ try:
 except KeyboardInterrupt:				# SIGTERM also brings us here
 	if 'stealth' not in argv:			# arg 'stealth' prevents cache save
 		saveCache()
-	cacheDump()
-
+	print('\nCiao!\n')
+	stdout.flush()						# qwirk of thread module

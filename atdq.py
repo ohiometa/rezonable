@@ -33,7 +33,6 @@ rcodeTimeout = -1
 
 waiter = []					# deque of remote queries by expire time
 finder = {}					# dict of remote queries by 16-bit id
-kounter = [0]				# number of attends
 
 # Module entry point #1*:
 # Accepts an LQ and someday returns an answer.
@@ -97,7 +96,6 @@ def ctda(a):
 # The deque is very simplistic, with all RQs given the same lifespan that
 # cannot be extended. Completed RQs aren't removed until they time out.
 def tick():
-	yes = False
 	while waiter and g.flow >= waiter[-1].timeout:
 
 		# this is the ONLY place we remove from finder and waiter
@@ -107,17 +105,15 @@ def tick():
 			r.q.rcode = rcodeTimeout
 			attend(r.q)
 		del r
-		yes = True
-
-	if yes: demand()
 
 # Continue an LQ that is ready for attention.
 # This is the function that reaps ALL yielded values.
 def attend(q):
 	while True:
-		kounter[0] += 1; demand()
-
-		flavor, ttl, food = q.gen.next()
+		try:
+			flavor, ttl, food = q.gen.next()
+		except StopIteration:
+			return						# can occur if dupe packet received
 
 		# deal with recursive side-query for address of nameserver
 		if flavor == isRecursed:
@@ -201,7 +197,6 @@ def newResolver(q):
 		# XXX TTL should realistically come from an SOA.
 		if getCache(name, 65282) is not None:
 			yield isNSD, w.nsdTTL, None
-			print('slam 1')
 			return					# local query ends
 
 		# CNAME? Hand it back.
@@ -214,7 +209,6 @@ def newResolver(q):
 		recs, ttl = getCacheTTL(name, tipe)
 		if recs is not None:
 			yield isRecs, ttl, recs
-			print('slam 2')
 			return					# local query ends
 
 		# What we seek is not in the cache.
@@ -228,7 +222,6 @@ def newResolver(q):
 			# It's not our problem to fix.
 			q.rcode = 2
 			yield isFail, None, None
-			print('slam 3')
 			return					# local query ends
 		q.lastzone = zone
 
@@ -280,7 +273,6 @@ def newResolver(q):
 		# Not a single nameserver responded successfully.
 		print('out of options at zone', zone, 'for', name, tipe)
 		yield isFail, None, None
-		print('slam 4')
 		return						# local query ends
 
 # Send query to addr about (name, tipe)
@@ -318,31 +310,6 @@ def nearestNameservers(name):
 		if ns:
 			return name, ns
 		name = parentOfZone(name)
-
-# Show what kind of load we're under.
-def demand():
-	if g.now < demand.next:
-		return
-	demand.next = g.now + 5
-	if gc.garbage: print('WE HAVE GARBAGE')
-	names = {}
-	try:
-		for item in gc.get_objects():
-			n = type(item).__name__
-			if n not in names:
-				names[n] = 0
-			names[n] += 1
-	except: pass
-	nl = list(names)
-	nl.sort()
-	print('\x1b[H', end='')
-	print('NAMES:\x1b[K')
-	for n in nl:
-		print('%6i %s\x1b[K' % (names[n], n))
-	print('\x1b[K')
-	stdout.flush()
-
-demand.next = 0
 
 # *answer the damn question
 # **check the damn answer

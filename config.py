@@ -1,4 +1,4 @@
-# #!/usr/bin/python2
+#!/usr/bin/python2
 # Rezonable configuration settings
 
 queryRepeats = 2			# lookups per server before query fails

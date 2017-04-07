@@ -11,7 +11,7 @@ try:
 		dom = f.readline().strip()
 		rank += 1
 		print('%i. %s' % (rank, dom))
-		system('dig +time=5 +retry=0 %s' % dom)
+		system('dig +time=1 +retry=0 %s' % dom)
 except KeyboardInterrupt:
 	print('\nHad enough?')
 

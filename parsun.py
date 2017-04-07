@@ -253,8 +253,6 @@ def unparseRR(rdata, tipe, d):
 	out = ''
 	if type(rdata) is not list: rdata = [rdata]
 	fmt = fFmts.get(tipe, 'R')
-	if tipe not in fFmts:
-		trace('warning - tipe %i' % tipe)
 
 	for f, rd in zip(fmt, rdata):
 		if f == '1':
