@@ -16,6 +16,7 @@ packetTracing = False		# diagnostic
 requireUserPort = True		# drop all queries from ports < 1024 (DoS issue)
 outgoingPort = 3553			# no randomization; keep sync'd with firewall
 stubAddr = '8.8.8.8'		# where to send stub queries to
+maxMsgs = 5000				# how many diagnostic messages to keep in RAM
 
 # list of permitted customers
 customers = '192.168.1.112 65.28.224.117'.split()

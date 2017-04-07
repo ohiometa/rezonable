@@ -58,17 +58,6 @@ LeET QueRieS: non-implementers, kludge, cookies better
 source port randomization: non-implementers, kludge, cookies better
 
 
-IMPORTANT "A" TEST QUERIES
---------------------------
-detectportal.firefox.com.
-start.ubuntu.com.
-self-repair.mozilla.org.
-ocsp.digicert.com.
-normandy-cloudfront.cdn.mozilla.net.
-a6-67.akam.net. (also check NS)
-a0dsce4.akamaiedge.net. (domain should exist but have no A records)
-www.caltech.edu.
-
 Alexa top million sites: s3.amazonaws.com/alexa-static/top-1m.csv.zip
 Supposedly updated daily.
 
@@ -115,6 +104,7 @@ def run():
 	g.now = int(g.flow)
 	def handler(ign, igno): raise KeyboardInterrupt
 	signal(SIGTERM, handler)
+	msg('rezonable starting')
 
 	argv.append('here')					# TODO rm
 	if 'here' in argv:					# command arg 'here' prevents daemon

@@ -250,6 +250,7 @@ def compressDomain(name, d):
 
 # Pack a resource record. Process is table-driven; see fFmts.
 def unparseRR(rdata, tipe, d):
+	print('UPRR', rdata, tipe)
 	out = ''
 	if type(rdata) is not list: rdata = [rdata]
 	fmt = fFmts.get(tipe, 'R')

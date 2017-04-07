@@ -73,32 +73,78 @@ def ctda(a):
 		return 'response from unexpected address'
 
 	# We did not time out. Store obtained information in the cache.
-	# XXX We would like some of this filtered.
 	r.running = False
-
-	# Collate records by (name, tipe) so cache can take them at once.
-	coll = {}
-	for name, tipe, ttl, rdata in a.As + a.Auths + a.Addls:
-		if (name, tipe) not in coll:
-			coll[(name, tipe)] = [w.maxTTL, []]
-		c = coll[(name, tipe)]
-		c[0] = min(c[0], ttl)
-		c[1].append(rdata)
-
-	# If we got an authoritative "no records" answer cache that as well.
-	if a.aa and not a.rcode and (a.name, a.tipe) not in coll:
-		coll[(a.name, a.tipe)] = [w.nsdTTL, []]	# TTL from SOA?
-
-	# Replace all the cache knows about (name, tipe) with what's here.
-	for (name, tipe), (ttl, recs) in coll.iteritems():
-		setCache(name, tipe, recs, ttl)
-
-	# No such domain?
 	r.q.rcode = a.rcode
-	if a.rcode == 3:
-		for bye in 1, 2, 5:						# kludge; want actual types
-			setCache(a.name, bye)
-		setCache(a.name, 65282, [], w.nsdTTL)	# XXX TTL from SOA?
+
+	# Our goal here is to save as little as possible from the records
+	# returned, not so much to save memory, but mostly to limit opportunities
+	# for the cache to be poisoned.
+	while True:									# does not loop
+
+		# If we get an authoritative "no such domain," so cache.
+		if a.aa and a.rcode == 3:
+			for bye in 1, 2, 5:					# XXX kludge; want actual types
+				setCache(a.name, bye)
+			setCache(a.name, 65282, [], w.nsdTTL)	# XXX Prefer TTL from SOA.
+			break
+
+		# Any nonzero rcode at this point indicates failure.
+		if a.rcode: break
+
+		# If we get a relevant CNAME, store that AND NOTHING ELSE.
+		recs = [(name, tipe, ttl, rdata) for (name, tipe, ttl, rdata) in a.As if tipe == 5 and name == a.name]
+		if recs:
+			setCache(a.name, tipe, [recs[0][3]], ttl)
+			break
+
+		# If we get an authoritative "no records," store that AND NOTHING ELSE.
+		# XXX TTL would be better from SOA.
+		if a.aa and not a.As:
+			setCache(a.name, a.tipe, [], w.nsdTTL)
+			break
+
+		# If we get relevant records, store them.
+		minTTL = w.maxTTL
+		recs = []
+		for name, tipe, ttl, rdata in a.As:
+			if name == a.name and tipe == a.tipe:
+				recs.append(rdata)
+				minTTL = min(ttl, minTTL)
+		if recs:
+			setCache(a.name, a.tipe, recs, minTTL)
+			break
+
+		# If we get nameserver records that pertain to our question, cache.
+		closest = ''
+		recs = []
+		for name, tipe, ttl, rdata in a.Auths:
+			if tipe != 2: continue
+			if not withinZone(a.name, name): continue
+			if len(name) > len(closest):
+				closest = name
+				recs = []
+				minTTL = w.maxTTL
+			recs.append(rdata)
+			minTTL = min(ttl, minTTL)
+		if recs:
+			setCache(closest, 2, recs, minTTL)	# fall through
+		else:
+			break
+
+		# If we get glue records for referenced nameservers that are
+		# inside the zone we're looking up, cache. This is a big security
+		# issue and what keeps the domain admin for us.af.mil. from
+		# hijacking us.navy.mil.		# TODO make sure it works
+		nsNames, recs = recs, []
+		for name, tipe, ttl, rdata in a.Addls:
+			if tipe not in (1, 28): continue
+			if name not in nsNames: continue
+			if not withinZone(name, closest): continue
+			setCache(name, tipe, [rdata], ttl)
+			# XXX That might work, but does not permit more than one A
+			#     record per nameserver.
+
+		break									# does not loop
 
 	# Local query needs attention again.
 	attend(r.q)
@@ -285,14 +331,14 @@ def newResolver(q):
 				# Query timed out (most common) or failed (less common).
 				# Try the next nameserver.
 				if q.rcode != rcodeTimeout:
-					print('failed: ns', ns, 'rcode', q.rcode, 'zone', zone, 'origName', q.origName, 'for', name, tipe)
+					msg('failed: ns', ns, 'rcode', q.rcode, 'zone', zone, 'origName', q.origName, 'for', name, tipe)
 				break				# continues to next ns
 
 			if triple_continue: break
 		if triple_continue: continue
 
 		# Not a single nameserver responded successfully.
-		print('out of options at zone', zone, 'for', name, tipe)
+		msg('out of options at zone', zone, 'for', name, tipe)
 		yield isFail, None, None
 		return						# local query ends
 

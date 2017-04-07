@@ -26,7 +26,7 @@ def saveCache():
 		dump(g.immortal, f, -1)
 		f.close()
 	except:
-		print('saveCache("%s") failed' % w.persistFile)
+		msg('saveCache("%s") failed' % w.persistFile)
 
 # Load cache from previous run. All or nothing.
 def loadCache():
@@ -37,7 +37,7 @@ def loadCache():
 		more = load(f)
 		f.close()
 	except:
-		print('loadCache("%s") failed' % w.persistFile)
+		msg('loadCache("%s") failed' % w.persistFile)
 		return
 	cache, g.immortal = hold, more
 
@@ -47,6 +47,8 @@ def loadCache():
 # TTL is randomized within a permitted range and cached as an expire time.
 # If 'ttl' is None, it will always retrieve as w.hostsTTL.
 def setCache(name, tipe, recs = None, ttl = None):
+
+	print('SC', name, tipe, recs, ttl)
 
 	if recs is None:
 		try: del cache[(name, tipe)]

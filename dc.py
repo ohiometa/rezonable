@@ -67,11 +67,14 @@ def consoleDo():
 			histo()
 		elif l == 'i':
 			show_im()
+		elif l == 'm':
+			for m in g.msgs[::-1]: print(m)
 		elif l == 's':
 			saveCache()
 			print('saved cache to disk')
 		else:
-			print('Commands are: (c)lear (d)ump (h)isto (i)mmortal (s)ave')
+			print(\
+'Commands are: (c)lear (d)ump (h)isto (i)mmortal (m)sgs (s)ave')
 		print(prompt, end='')
 		stdout.flush()
 

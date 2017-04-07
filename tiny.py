@@ -4,6 +4,7 @@
 from __future__ import division, print_function
 from resource import getrusage, RUSAGE_SELF
 from sys import stdout
+from time import localtime, strftime
 
 import config as w
 
@@ -19,6 +20,7 @@ g.hiSock = None			# socket for port 5353
 g.cache = {}			# initial cache situation
 g.immortal = set()		# names that need A records forever
 g.requery = []			# list of names to requery
+g.msgs = []				# system messages
 cache = now = flow = sock = Bug	# catch typos for a spell
 
 # resource record type forward and reverse mappings
@@ -72,27 +74,19 @@ def parentOfZone(z):
 	z = z[1+z.index('.'):]
 	return z if z else '.'
 
-# diagnostics
-def red(*_):
-	if not w.tracing: return
-	print('\x1b[1;31m', end='')
-	print(*_)
-	print('\x1b[m', end='')
-	stdout.flush()
-
-# diagnostics
-def green(*_):
-	if not w.tracing: return
-	print('\x1b[1;32m', end='')
-	print(*_)
-	print('\x1b[m', end='')
-	stdout.flush()
-
-# diagnostics
-def trace(*_):
-	if not w.tracing: return
-	print(*_)
+# diagnostic: put message where diagnostic console can view it
+def msg(*stuff):
+	stuff = strftime('%a %H:%M ', localtime(g.now)) + ' '.join(map(str, stuff))
+	g.msgs.insert(0, stuff)
+	while len(g.msgs) > w.maxMsgs: g.msgs.pop()
 
 # maximum size of this process, kb
 def kilos():
 	return getrusage(RUSAGE_SELF).ru_maxrss
+
+# Return true if x is within zone y.
+# clique4.us. and www.clique4.us are both within clique4.us.
+# myclique4.us is not.
+def withinZone(x, y):
+	x, y = '.' + x, '.' + y
+	return x.endswith(y)

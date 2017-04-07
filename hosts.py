@@ -27,7 +27,7 @@ def loadHosts():
 		f = open(w.hostsFile).read()
 	except:
 		# Note if hosts cannot be read, no changes are made to cache.
-		print('cannot stat or cannot read %s' % w.hostsFile)
+		msg('cannot stat or cannot read %s' % w.hostsFile)
 		return
 
 	# SOA nitpicking, because it's fun - XXX some fixed constants
@@ -52,8 +52,8 @@ def loadHosts():
 		a32 = parse_dotted_quad(t[0])
 		ok = map(hostname_syntax_ok, names)
 		if a32 is None or not all(ok):
-			print('bad line in /etc/hosts:\n  ', end='')
-			print(l)
+			msg('bad line in /etc/hosts:\n  ', end='')
+			msg(l)
 			continue
 
 		# domain names in cache end with '.'
