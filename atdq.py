@@ -94,7 +94,7 @@ def ctda(a):
 		# If we get a relevant CNAME, store that AND NOTHING ELSE.
 		recs = [(name, tipe, ttl, rdata) for (name, tipe, ttl, rdata) in a.As if tipe == 5 and name == a.name]
 		if recs:
-			setCache(a.name, tipe, [recs[0][3]], ttl)
+			setCache(a.name, 5, [recs[0][3]], ttl)
 			break
 
 		# If we get an authoritative "no records," store that AND NOTHING ELSE.

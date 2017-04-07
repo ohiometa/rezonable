@@ -48,8 +48,6 @@ def loadCache():
 # If 'ttl' is None, it will always retrieve as w.hostsTTL.
 def setCache(name, tipe, recs = None, ttl = None):
 
-	print('SC', name, tipe, recs, ttl)
-
 	if recs is None:
 		try: del cache[(name, tipe)]
 		except: pass

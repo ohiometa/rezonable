@@ -22,3 +22,5 @@ setuid: compile
 	sudo chown root.root port53
 	sudo chmod 4775 port53
 
+fresh:
+	rm -f /var/tmp/rezonable-cache.pickle.gz
