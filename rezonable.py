@@ -24,24 +24,14 @@ Useful numbers:
 KNOWN BUGS
 ----------
 
-- dig a6-67.akam.net. ns [should have lots of recs; we return server failure]
-- dig a0dsce4.akamaiedge.net. [should have no A recs; we return server failure]
-- dig a1e7.akamaiedge.net. [should have no A recs; we return server failure]
-- windows.com does NOT work
-- requeries do not occur
-- anecdotal evidence that NS records for '.' got removed, but
-  we were doing gc stress test in an interactive session at tha ttime.
-
 
 GOING TO DO (minutes to implement estimated)
 --------------------------------------------
- 30 test expiration
  30 really, "not implemented" and other errors is better than drops;
     for one thing, you can get Firefox to quit asking for AAAAs.
  30 packet length negotiation
  30 reduce susceptability to glue poisoning
  60 query resource limits (duration, size, etc.)
- 60 improved tracing, logging, and some alerts
  90 compression fully working
  10 pass case back to customer (do AFTER compression)
 120 RFC 7873 cookies
@@ -53,8 +43,9 @@ a filter for sensitive names prematurely asked
 do not query if firewall won't let responses in
 look at misbehaviors of RFC 4697
 look at all the interesting details in RFC 2308
-test bench
+test bench (simulated remotes, etc.)
 nicer zone files
+should we require the diagnostic console for hosts reload?
 
 
 REFUSE TO DO
@@ -95,7 +86,7 @@ from sys import argv, stdout
 from thread import start_new_thread
 from time import time
 
-from atdq import atdq, ctda, tick
+from atdq import atdq, ctda, tick, unpurge
 from dc import consoleDo, consoleThread
 from cache import cacheDump, createBootstrapZone, loadCache, purgeCache, saveCache
 import config as w
@@ -125,7 +116,7 @@ def run():
 
 	argv.append('here')					# TODO rm
 	if 'here' in argv:					# command arg 'here' prevents daemon
-		print('\x1bc')					# unclutter screen
+		pass
 	else:
 		# mini-daemonize
 		if fork():						# I think the authbind mechanism
@@ -178,6 +169,7 @@ def run():
 		pollCount -= 1
 		if pollCount <= 0:
 			purgeCache()
+			unpurge()
 			loadHosts()
 			pollCount = 60				# times select timeout XXX make longer
 

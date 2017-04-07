@@ -16,7 +16,6 @@ g.flow = 0.				# current time as float
 g.now = 0				# current time as int
 g.loSock = None			# socket for port 53
 g.hiSock = None			# socket for port 5353
-g.kickMe = False		# stack need attention?
 g.cache = {}			# initial cache situation
 g.immortal = set()		# names that need A records forever
 g.requery = []			# list of names to requery

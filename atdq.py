@@ -23,7 +23,7 @@ import config as w
 from parsun import *
 from tiny import *
 
-__all__ = 'atdq ctda tick'.split()
+__all__ = 'atdq ctda tick unpurge'.split()
 
 # new enums: CNAME, failure, no such domain, result, need more time
 isCNAME, isRecursed, isFail, isNSD, isRecs, isWait = range(6)
@@ -36,7 +36,17 @@ finder = {}					# dict of remote queries by 16-bit id
 
 # Module entry point #1*:
 # Accepts an LQ and someday returns an answer.
-# If topLevel is false, just set up the fields.
+#
+# Usual operation is when parentQuery is None, meaning we will send
+# a reply for the LQ when we finish.
+#
+# If a parent query is supplied, just set up the fields and don't
+# call attend(), because it will jump from parent to child on its own.
+#
+# If parentQuery is False, we call attend() but don't return a reply
+# to any local query. The query was forced by a cache purge or by
+# stress testing.
+#
 def atdq(q, parentQuery = None):
 	q.gen = newResolver(q)	# does not execute, but returns a generator
 	q.rcode = 0
@@ -74,6 +84,10 @@ def ctda(a):
 		c = coll[(name, tipe)]
 		c[0] = min(c[0], ttl)
 		c[1].append(rdata)
+
+	# If we got an authoritative "no records" answer cache that as well.
+	if a.aa and not a.rcode and (a.name, a.tipe) not in coll:
+		coll[(a.name, a.tipe)] = [w.nsdTTL, []]	# TTL from SOA?
 
 	# Replace all the cache knows about (name, tipe) with what's here.
 	for (name, tipe), (ttl, recs) in coll.iteritems():
@@ -164,6 +178,9 @@ def attend(q):
 		attend(q.parent)
 		return
 
+	# No reply is possible if this wasn't a local query.
+	if q.parent is False: return
+
 	# We are now able to respond to the user.
 	a = AdHoc()
 	a.rcode, a.cd, a.ad, a.z, a.ra, a.rd, a.aa, a.opcode, a.qr = \
@@ -171,6 +188,10 @@ def attend(q):
 	a.id, a.replyTo, a.name, a.tipe = q.id, q.replyTo, q.origName, q.tipe
 	a.As, a.Auths, a.Addls = q.As, [], []
 	g.loSock.sendto(unparse(a), a.replyTo)
+
+	# Any user query that made it this far will be immortal.
+	if q.tipe == 1:
+		g.immortal.add(q.origName)
 
 # Recursive resolver implemented as a generator function.
 # This is the ONLY function that yields.
@@ -310,6 +331,14 @@ def nearestNameservers(name):
 		if ns:
 			return name, ns
 		name = parentOfZone(name)
+
+# Resurrect immortal domains that were purged from the cache.
+def unpurge():
+	while g.requery:
+		name = g.requery.pop()
+		q = AdHoc()
+		q.name, q.tipe, q.replyTo = name, 1, None
+		atdq(q, False)
 
 # *answer the damn question
 # **check the damn answer

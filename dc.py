@@ -12,7 +12,7 @@ from tiny import *
 
 __all__ = 'consoleDo consoleThread'.split()
 
-hello = 'Rezonable console\n'
+hello = 'Rezonable is running.\n'
 prompt = '- '
 typed = []							# lines typed by user into stdin
 
@@ -32,7 +32,8 @@ def histo():
 	for n in nl:
 		print('%6i %s' % (names[n], n))
 
-# Loop and get user input
+# Loop and get user input. I wouldn't have chosen to multithread like this,
+# but certain defective operating systems can't multiplex stdin with select().
 def consoleThread():
 	try:
 		print(hello, end='')
@@ -40,27 +41,37 @@ def consoleThread():
 		stdout.flush()
 		while True:
 			l = raw_input().strip()
-			if not l: continue
 			typed.insert(0, l)
 	except EOFError, KeyboardInterrupt:
 		interrupt_main()		
 
-# Process user to do diagnostic things
+def show_im():
+	l = list(g.immortal)
+	l.sort()
+	print('IMMORTAL DOMAINS')
+	for d in l:
+		print(d)
+
+# Process user input to do diagnostic things.
 def consoleDo():
 	while typed:
 		l = typed.pop()
 		if False: pass
+		elif l == '':
+			pass
 		elif l == 'c':
 			print('\x1bc', end='')
 		elif l == 'd':
 			cacheDump()
 		elif l == 'h':
 			histo()
+		elif l == 'i':
+			show_im()
 		elif l == 's':
 			saveCache()
 			print('saved cache to disk')
 		else:
-			print('Commands are: (c)lear (d)ump (h)isto (s)ave')
+			print('Commands are: (c)lear (d)ump (h)isto (i)mmortal (s)ave')
 		print(prompt, end='')
 		stdout.flush()
 

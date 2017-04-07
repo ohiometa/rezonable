@@ -91,21 +91,19 @@ def createBootstrapZone():
 	setCache(w.bsZone, 2, [w.myHostName])
 
 	# XXX test NXDOMAIN queries; other NXDOMAIN support still absent
-	setCache('not.here.', 65282, [])
+	setCache('not.here.', 65282, [])		# TODO rm
 
 # Expunge expired records from cache.
-# Immortal domains will have their A records requeried.
+# Immortal domains will have their A and NXDOMAIN records requeried.
 def purgeCache():
 	bye = []
 	for (name, tipe), (recs, exp) in cache.iteritems():
 		if exp is not None and g.now >= exp:
 			bye.append((name, tipe))
-			if tipe == 1 and name in g.immortal:
+			if name in g.immortal and tipe in (1, 65282):
 				g.requery.append(name)
 	for name_tipe in bye:
 		del cache[name_tipe]
-	if g.requery:
-		g.kickMe = True			# TODO nothing happens with this
 
 # diagnostic
 def cacheSize():
@@ -136,4 +134,4 @@ def cacheDump():
 def domainSortKey(name):
 	name = name.split('.')
 	name.reverse()
-	return namec
+	return name
