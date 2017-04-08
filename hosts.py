@@ -30,7 +30,7 @@ def loadHosts():
 		msg('cannot stat or cannot read %s' % w.hostsFile)
 		return
 
-	# SOA nitpicking, because it's fun - XXX some fixed constants
+	# SOA nitpicking, because it's fun - XXX some fixed constantsz
 	serial = int(strftime('%y%j%H%M', gmtime(mtime)))
 	soaRR = [w.myHostName, w.myEmail, serial, 900, 900, 3600, 90]
 

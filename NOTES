@@ -1,57 +1,142 @@
-Some load measurements
-30 Mar 2016
+CALL DEPENDENCIES AS OF APRIL 8
+Lists all functions, and under them the functions they are called from.
+stub.py is not included, as it's self-contained.
+Calls to msg are subject to casual changes.
 
-Firefox is configured to not query AAAA.
+Functions marked with % are not part of possible call loops, although
+call loops may appear beneath them.
 
-JUST READING HOSTS
-tipe universe: [1, 2, 5, 6, 65282]
-76 recs for 28 names
+atdq.py
 
-HOSTS + FIREFOX
-tipe universe: [1, 2, 5, 6, 65282]
-174 recs for 124 names
+	atdq
+		newResolver
+		unpurge
+		run
+%	ctda
+		run
+%	tick
+		run
+	attend
+		atdq
+		ctda
+		tick
+		attend
+	newResolver
+		atdq (constructs)
+		attend (iterates)
+%	enq
+		newResolver
+%	nearestNameservers
+		newResolver
+%	unpurge
+		run
 
-HOSTS + FIREFOX + GOOGLE SEARCH
-tipe universe: [1, 2, 5, 6, 65282]
-191 recs for 141 names
+cache.py
 
-HOSTS + FIREFOX + STACKOVERFLOW ANSWER
-tipe universe: [1, 2, 5, 6, 65282]
-377 recs for 327 names
+%	saveCache
+		rezonable.py cleanup
+		consoleDo
+%	loadCache
+		run
+%	setCache
+		ctda
+		createBootstrapZone
+		loadHosts
+%	getCache
+		newResolver
+		nearestNameservers
+%	getCacheTTL
+		newResolver
+%	createBootstrapZone
+		run
+%	purgeCache
+		run
+%	cacheDump
+		consoleDo
+%	domainSortKey
+		cacheDump
 
-HOSTS + FIREFOX + CNN
-tipe universe: [1, 2, 5, 6, 65282]
-882 recs for 827 names
+dc.py
 
-HOSTS + FIREFOX + FOXNEWS
-tipe universe: [1, 2, 5, 6, 65282]
-668 recs for 606 names
+%	histo
+		consoleDo
+%	consoleThread
+		run
+%	show_im
+		consoleDo
+%	consoleDo
+		run
 
-HOSTS + FIREFOX + CSMONITOR
-tipe universe: [1, 2, 5, 6, 65282]
-532 recs for 477 names
+hosts.py
 
-HOSTS + FIREFOX + YOUTUBE REPLAY
-tipe universe: [1, 2, 5, 6, 65282]
-219 recs for 169 names
+%	loadHosts
+		run
 
-HOSTS + FIREFOX + NFL
-tipe universe: [1, 2, 5, 6, 65282]
-636 recs for 585 names
+parsun.py
 
-HOSTS + FIREFOX + YOUPORN
-tipe universe: [1, 2, 5, 6, 65282]
-238 recs for 186 names
+%	unpackBits
+		parse
+%	packBits
+		unparse
+	unpackRR
+		unpackRR
+		unpackDomain
+		parse
+	unpackDomain
+		unpackDomain
+		unpackRR
+%	parse
+		run
+%	unparse
+		attend
+		enq
+%	compressDomain
+		unparse
+		unparseRR
+%	unparseRR
+		unparse
 
-UNION OF ALL THE ABOVE (NO OVERLAPS) WOULD BE
-tipe universe: [1, 2, 5, 6, 65282]
-2525 recs for 2450 names
+rezonable.py
 
-UNION OF ALL THE ABOVE ACTUALLY IS
-tipe universe: [1, 2, 5, 6, 65282]
-1543 recs for 1466 names
+%	run
+		rezonable.py startup
+%	handler
+		run
 
+tiny.py
 
+%	dq
+		enq
+%	parse_dotted_quad
+		loadHosts
+%	parentOfZone
+		nearestNameservers
+%	msg
+		newResolver
+		loadCache
+		saveCache
+		loadHosts
+		run
+%	withinZone
+		ctda
+%	hostname_syntax_ok
+		loadHosts
 
-a1e7.akamaiedge.net.
+CONCLUSIONS
+
+1. Call loops are not the only loops, there are also iterative loops
+   to seek out.
+
+2. Here are the only possible call loops that I found.
+   Order is [this, what_this_calls, what_is_called_next, ...]
+
+	[unpackRR]
+	[unpackDomain]
+	[unpackRR unpackDomain]
+	[newResolver atdq]
+	[atdq attend newResolver]
+	[attend]
+
+3. Consider the possibility of more loops through 'finder' and 'waiter'.
+
 

@@ -10,7 +10,7 @@ from random import randrange
 import config as w
 from tiny import *
 
-__all__ = '''cacheDump cacheSize createBootstrapZone getCache getCacheTTL loadCache purgeCache
+__all__ = '''cacheDump createBootstrapZone getCache getCacheTTL loadCache purgeCache
 saveCache setCache'''.split()
 
 # (name, tipe) -> ([records], expire)
@@ -104,10 +104,6 @@ def purgeCache():
 				g.requery.append(name)
 	for name_tipe in bye:
 		del cache[name_tipe]
-
-# diagnostic
-def cacheSize():
-	return len(cache)
 
 # diagnostic
 def cacheDump():

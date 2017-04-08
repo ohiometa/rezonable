@@ -15,7 +15,7 @@
 
 from __future__ import division, print_function
 from random import randrange
-from sys import stdout
+from sys import stderr, stdout
 from time import sleep, strftime
 
 from cache import *

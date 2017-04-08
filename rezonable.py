@@ -24,7 +24,11 @@ Useful numbers:
 KNOWN BUGS
 ----------
 
-    tvsubtitles.net. 1
+- Nobody has really tested if glue poisoning is averted.
+
+- An infinite loop occurs, cause unknown.
+  Took more than 12 hours of stress testing to trigger.
+  Some preliminary troubleshooting is available in NOTES.
 
 
 GOING TO DO (minutes to implement estimated)
@@ -32,7 +36,6 @@ GOING TO DO (minutes to implement estimated)
  30 really, "not implemented" and other errors is better than drops;
     for one thing, you can get Firefox to quit asking for AAAAs.
  30 packet length negotiation
- 30 reduce susceptability to glue poisoning
  60 query resource limits (duration, size, etc.)
  90 compression fully working
  10 pass case back to customer (do AFTER compression)

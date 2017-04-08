@@ -7,8 +7,7 @@ from struct import pack, unpack
 #import config as w
 from tiny import *
 
-__all__ = '''packBits parse rdataToDomain 
-	setupPacket unpackBits unparse'''.split()
+__all__ = '''packBits parse	unpackBits unparse'''.split()
 
 # field formats for resource records
 # 1 = UINT1, 2 = uint2, 4 = uint4, C = char_string_255, D = domain_name,
@@ -150,37 +149,6 @@ def parse(d, replyTo):
 
 	return h
 
-# Set up a packet to send, but do not assemble it.
-# In other words, return the same kind of object that parse() does.
-# Everything in the created packet is 0 / empty except as specified by
-# the caller. d1 overrides these defaults, and d2 overrides d1.
-# They can either be a parse()-type object or a small dict.
-def setupPacket(d1 = None, d2 = None):
-	d = {}
-	for n in 'id rcode cd ad z ra rd tc aa opcode qr nQ nA nAuth nAddl tipe' \
-			.split():
-		d[n] = 0
-	for n in 'As Auths Addls'.split():
-		d[n] = []
-	d['replyTo'] = '127.0.0.1', 53
-	d['name'] = ''
-	for changes in d1, d2:
-		if changes is None: continue
-		if type(changes) is not dict:
-			changes = changes.__dict__
-		for k, v in changes.iteritems():
-			if k.startswith('__'): continue
-			if k not in d: continue			# much extra baggage around
-			if type(v) is list: v = v[:]	# don't reference lists; copy them
-			d[k] = v
-	o = AdHoc()
-	for k, v in d.iteritems():
-		setattr(o, k, v)
-	o.ad = 0								# XXX no DNSSEC authenticated data
-	o.nQ = 1
-	o.nA, o.nAuth, o.nAddl = map(len, (o.As, o.Auths, o.Addls))
-	return o
-
 # Assemble (unparse) a packet. For this to succeed, 'p' requires fields:
 #   header section:  id rcode cd ad z ra rd aa opcode qr
 #   everything else: name, tipe, As, Auths, Addls
@@ -274,13 +242,4 @@ def unparseRR(rdata, tipe, d):
 			out += rd
 		else: raise Bug
 	return out
-
-# Consistently extract "relevant" domain records from rdata.
-# Always returns a list. Happens to be empty or singleton at present.
-def rdataToDomain(rdata, tipe):
-	l = []
-	if tipe in (2, 5, 12): l.append(rdata)
-	elif tipe == 6: l.append(rdata[0])
-	elif tipe == 15: l.append(rdata[1])
-	return l
 

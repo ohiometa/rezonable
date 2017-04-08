@@ -52,19 +52,6 @@ def parse_dotted_quad(q):
 	if not all(map(lambda x: x >= 0 and x <= 255, q)): return
 	return q[0] << 24 | q[1] << 16 | q[2] << 8 | q[3]
 
-# check hostname syntax
-def hostname_syntax_ok(n):
-	if len(n) > 255: return False
-	n = n.lower()
-	for c in n:
-		if not c.isalnum() and c not in '.-': return False
-	n = n.split('.')
-	for label in n:
-		if not label or len(label) > 63 or label.startswith('-') or \
-				label.endswith('-') or '--' in label:
-			return False
-	return True
-
 # Given a zone name, return its parent. Identity for root zone.
 # TODO - as you can see, we didn't put the identity in, and
 # it looks like cache expiration created a situation where we
@@ -81,8 +68,8 @@ def msg(*stuff):
 	while len(g.msgs) > w.maxMsgs: g.msgs.pop()
 
 # maximum size of this process, kb
-def kilos():
-	return getrusage(RUSAGE_SELF).ru_maxrss
+#def kilos():
+#	return getrusage(RUSAGE_SELF).ru_maxrss
 
 # Return true if x is within zone y.
 # clique4.us. and www.clique4.us are both within clique4.us.
@@ -90,3 +77,17 @@ def kilos():
 def withinZone(x, y):
 	x, y = '.' + x, '.' + y
 	return x.endswith(y)
+
+# check hostname syntax
+def hostname_syntax_ok(n):
+	if len(n) > 255: return False
+	n = n.lower()
+	for c in n:
+		if not c.isalnum() and c not in '.-': return False
+	n = n.split('.')
+	for label in n:
+		if not label or len(label) > 63 or label.startswith('-') or \
+				label.endswith('-') or '--' in label:
+			return False
+	return True
+
